@@ -310,13 +310,13 @@ body {
         </div>
         <div>
           <label class="form-label">Horário (HH:MM)</label>
-          <input class="form-input font-mono" id="fHorario" placeholder="09:00" inputmode="numeric"/>
+          <input class="form-input font-mono" id="fHorario" placeholder="09:00" inputmode="numeric" pattern="[0-9:]*" maxlength="5" autocomplete="off"/>
         </div>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="form-label">Dia (ex: 09)</label>
-          <input class="form-input font-mono" id="fDay" placeholder="09" inputmode="numeric"/>
+          <input class="form-input font-mono" id="fDay" placeholder="09" inputmode="numeric" pattern="[0-9]*" maxlength="2" autocomplete="off"/>
         </div>
         <div>
           <label class="form-label">Área / região</label>
@@ -330,7 +330,7 @@ body {
         </div>
         <div>
           <label class="form-label">Sessões</label>
-          <input class="form-input" id="fSessoes" placeholder="8"/>
+          <input class="form-input font-mono" id="fSessoes" placeholder="8" inputmode="numeric" pattern="[0-9]*" autocomplete="off"/>
         </div>
         <div>
           <label class="form-label">Falta</label>
@@ -339,8 +339,8 @@ body {
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label class="form-label">Início</label>
-          <input class="form-input" id="fInicio" placeholder="DD/MM/AAAA"/>
+          <label class="form-label">Início (DD/MM/AAAA)</label>
+          <input class="form-input font-mono" id="fInicio" placeholder="09/01/2026" inputmode="numeric" pattern="[0-9/]*" maxlength="10" autocomplete="off"/>
         </div>
         <div>
           <label class="form-label">Fototipo</label>
@@ -1069,6 +1069,35 @@ function normalizeDayInput(raw) {
   var key = pad2(parseInt(m[1], 10));
   return { key: key, label: s.toUpperCase().indexOf("DIA") === 0 ? s.toUpperCase() : ("DIA " + key) };
 }
+
+
+/* Máscaras: horário HH:MM e data DD/MM/AAAA + teclado numérico */
+function onlyDigits(s) { return String(s || "").replace(/\D/g, ""); }
+
+function maskTime(el) {
+  var d = onlyDigits(el.value).slice(0, 4);
+  if (d.length <= 2) el.value = d;
+  else el.value = d.slice(0, 2) + ":" + d.slice(2);
+}
+
+function maskDate(el) {
+  var d = onlyDigits(el.value).slice(0, 8);
+  if (d.length <= 2) el.value = d;
+  else if (d.length <= 4) el.value = d.slice(0, 2) + "/" + d.slice(2);
+  else el.value = d.slice(0, 2) + "/" + d.slice(2, 4) + "/" + d.slice(4);
+}
+
+function bindMask(id, fn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("input", function () { fn(el); });
+  el.addEventListener("blur", function () { fn(el); });
+}
+
+bindMask("fHorario", maskTime);
+bindMask("fInicio", maskDate);
+bindMask("fDay", function (el) { el.value = onlyDigits(el.value).slice(0, 2); });
+bindMask("fSessoes", function (el) { el.value = onlyDigits(el.value); });
 
 document.getElementById("editForm").addEventListener("submit", function (e) {
   e.preventDefault();
