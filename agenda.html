@@ -12,8 +12,8 @@ tailwind.config = {
   theme: {
     extend: {
       colors: {
-        neon: { cyan: "#00f5ff", pink: "#ff00aa", purple: "#a855f7", green: "#00ff9d", blue: "#3b82f6" },
-        dark: { 900: "#0a0a12", 800: "#12121f", 700: "#1a1a2e", 600: "#252540" }
+        neon: { cyan: "#f9a8d4", pink: "#ec4899", purple: "#e879f9", green: "#fbbf24", blue: "#f472b6" },
+        dark: { 900: "#1a0a14", 800: "#2a1220", 700: "#3d1f32", 600: "#4a2540" }
       }
     }
   }
@@ -23,7 +23,7 @@ tailwind.config = {
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 * { box-sizing: border-box; }
 body {
-  background: linear-gradient(145deg, #0a0a12 0%, #12121f 40%, #1a1a2e 100%);
+  background: linear-gradient(145deg, #1a0a14 0%, #2a1220 40%, #3d1f32 100%);
   min-height: 100vh;
   font-family: Inter, system-ui, sans-serif;
   padding-bottom: 96px;
@@ -31,22 +31,22 @@ body {
 .glass {
   background: rgba(26, 26, 46, 0.78);
   backdrop-filter: blur(14px);
-  border: 1px solid rgba(0, 245, 255, 0.12);
+  border: 1px solid rgba(249, 168, 212, 0.12);
 }
 .glass-hover:hover {
-  border-color: rgba(0, 245, 255, 0.35);
-  box-shadow: 0 0 22px rgba(0, 245, 255, 0.12);
+  border-color: rgba(249, 168, 212, 0.35);
+  box-shadow: 0 0 22px rgba(249, 168, 212, 0.12);
 }
-.neon-text { text-shadow: 0 0 12px rgba(0, 245, 255, 0.45); }
+.neon-text { text-shadow: 0 0 12px rgba(249, 168, 212, 0.45); }
 .scrollbar-thin::-webkit-scrollbar { width: 5px; height: 5px; }
-.scrollbar-thin::-webkit-scrollbar-track { background: #1a1a2e; }
-.scrollbar-thin::-webkit-scrollbar-thumb { background: #00f5ff44; border-radius: 3px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: #3d1f32; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #f9a8d444; border-radius: 3px; }
 .client-card { transition: all 0.18s ease; }
-.client-card:hover { transform: translateY(-1px); border-color: rgba(0,245,255,0.4); }
+.client-card:hover { transform: translateY(-1px); border-color: rgba(249,168,212,0.4); }
 .tab-btn.active {
-  background: rgba(0, 245, 255, 0.18);
-  border-color: rgba(0, 245, 255, 0.55);
-  color: #00f5ff;
+  background: rgba(249, 168, 212, 0.18);
+  border-color: rgba(249, 168, 212, 0.55);
+  color: #f9a8d4;
 }
 .day-chip.active {
   background: rgba(255, 192, 0, 0.22);
@@ -61,13 +61,13 @@ body {
 }
 .time-badge.time-pending {
   color: #22d3ee;
-  background: rgba(0, 245, 255, 0.10);
-  border: 1px solid rgba(0, 245, 255, 0.30);
+  background: rgba(249, 168, 212, 0.10);
+  border: 1px solid rgba(249, 168, 212, 0.30);
 }
 .time-badge.time-sent {
   color: #4ade80;
-  background: rgba(34, 197, 94, 0.18);
-  border: 1px solid rgba(74, 222, 128, 0.55);
+  background: rgba(251, 191, 36, 0.18);
+  border: 1px solid rgba(252, 211, 77, 0.55);
 }
 .time-badge.time-empty {
   color: #4b5563;
@@ -80,7 +80,7 @@ body {
 }
 .area-tag {
   font-size: 10px; padding: 2px 6px; border-radius: 4px;
-  background: rgba(0,245,255,0.1); border: 1px solid rgba(0,245,255,0.25); color: #67e8f9;
+  background: rgba(249,168,212,0.1); border: 1px solid rgba(249,168,212,0.25); color: #67e8f9;
 }
 .chart-box { position: relative; height: 200px; }
 .empty-state { opacity: 0.55; }
@@ -95,25 +95,25 @@ body {
   .modal-overlay { align-items: center; padding: 1rem; }
 }
 .modal-box {
-  background: #12121f;
-  border: 1px solid rgba(0,245,255,0.25);
+  background: #2a1220;
+  border: 1px solid rgba(249,168,212,0.25);
   border-radius: 1rem 1rem 0 0;
   max-width: 560px;
   width: 100%;
   max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 0 40px rgba(0,245,255,0.12);
+  box-shadow: 0 0 40px rgba(249,168,212,0.12);
 }
 @media (min-width: 640px) {
   .modal-box { border-radius: 1rem; max-height: 90vh; }
 }
 .form-input {
-  background: #1a1a2e; border: 1px solid #374151; border-radius: 0.5rem;
+  background: #3d1f32; border: 1px solid #374151; border-radius: 0.5rem;
   padding: 0.65rem 0.75rem; color: #e5e7eb; font-size: 1rem; width: 100%;
 }
 .form-input:focus {
-  outline: none; border-color: #00f5ff;
-  box-shadow: 0 0 0 2px rgba(0,245,255,0.15);
+  outline: none; border-color: #f9a8d4;
+  box-shadow: 0 0 0 2px rgba(249,168,212,0.15);
 }
 .form-label {
   font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
@@ -128,8 +128,8 @@ body {
   z-index: 90;
   height: 56px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #ff00aa 0%, #a855f7 50%, #00f5ff 100%);
-  color: #0a0a12;
+  background: linear-gradient(135deg, #ec4899 0%, #e879f9 50%, #f9a8d4 100%);
+  color: #1a0a14;
   font-weight: 700;
   font-size: 1.05rem;
   display: flex;
@@ -175,16 +175,16 @@ body {
 </head>
 <body class="text-gray-100 antialiased">
 
-<header class="sticky top-0 z-50 glass border-b border-cyan-500/20">
+<header class="sticky top-0 z-50 glass border-b border-pink-400/20">
   <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-purple-500 flex items-center justify-center shadow-lg shadow-cyan-500/25">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center shadow-lg shadow-pink-400/25">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
         </svg>
       </div>
       <div>
-        <h1 class="text-xl font-bold neon-text text-cyan-400">NEXUS AGENDA <span class="text-white"> CLÍNICA BL</span></h1>
+        <h1 class="text-xl font-bold neon-text text-pink-300">NEXUS AGENDA <span class="text-white"> CLÍNICA BL</span></h1>
         <p class="text-xs text-gray-400 font-mono">Editor completo De pacientes • Excel</p>
       </div>
     </div>
@@ -198,32 +198,32 @@ body {
 <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
   <!-- Arquivo: separado do botão de paciente -->
-  <section class="glass rounded-2xl p-4 sm:p-5 border border-cyan-500/20">
-    <h2 class="text-sm font-semibold text-cyan-400 mb-3">Arquivo Excel</h2>
+  <section class="glass rounded-2xl p-4 sm:p-5 border border-pink-400/20">
+    <h2 class="text-sm font-semibold text-pink-300 mb-3">Arquivo Excel</h2>
     <div class="flex flex-wrap gap-2">
-      <button type="button" id="btnLoadExcel" class="btn-action bg-cyan-500/15 border border-cyan-500/40 text-cyan-400 hover:bg-cyan-500/25">📂 Abrir XLSX</button>
+      <button type="button" id="btnLoadExcel" class="btn-action bg-pink-500/15 border border-pink-400/40 text-pink-300 hover:bg-pink-500/25">📂 Abrir XLSX</button>
       <input type="file" id="excelInput" accept=".xlsx,.xls" class="hidden"/>
       <button type="button" id="btnNewAgenda" class="btn-action bg-purple-500/15 border border-purple-500/40 text-purple-300 hover:bg-purple-500/25">✨ Nova agenda</button>
-      <button type="button" id="btnExport" class="btn-action bg-green-500/15 border border-green-500/40 text-green-400 hover:bg-green-500/25 opacity-50 cursor-not-allowed" disabled>💾 Exportar filtrado</button>
-      <button type="button" id="btnSaveFull" class="btn-action bg-green-600/25 border border-green-400/60 text-green-200 hover:bg-green-600/40 opacity-50 cursor-not-allowed" disabled>📥 Baixar XLSX completo</button>
+      <button type="button" id="btnExport" class="btn-action bg-amber-500/15 border border-amber-400/40 text-amber-300 hover:bg-amber-500/25 opacity-50 cursor-not-allowed" disabled>💾 Exportar filtrado</button>
+      <button type="button" id="btnSaveFull" class="btn-action bg-amber-600/25 border border-amber-300/60 text-amber-100 hover:bg-amber-600/40 opacity-50 cursor-not-allowed" disabled>📥 Baixar XLSX completo</button>
     </div>
     <div id="fileInfo" class="mt-3 text-sm font-mono text-gray-500 hidden"></div>
-    <p class="mt-2 text-[11px] text-gray-500">Dica: use <strong class="text-gray-400">Baixar XLSX completo</strong> para salvar todas as alterações no computador, E SEMPRE BAIXE O ARQUIVO PARA NÃO PERDER SE A PÁGINA RECARREGAR</p>
+    <p class="mt-2 text-[11px] text-gray-500">Dica: use <strong class="text-gray-400">Baixar XLSX completo</strong> para salvar todas as alterações no computador.</p>
   </section>
 
   <!-- KPIs -->
   <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-    <div class="glass rounded-xl p-4 border border-cyan-500/20">
+    <div class="glass rounded-xl p-4 border border-pink-400/20">
       <p class="text-[11px] text-gray-500 font-mono uppercase tracking-wider">Clientes</p>
-      <p id="kpiTotal" class="text-2xl font-bold text-cyan-400 mt-1">0</p>
+      <p id="kpiTotal" class="text-2xl font-bold text-pink-300 mt-1">0</p>
     </div>
-    <div class="glass rounded-xl p-4 border border-green-500/20">
+    <div class="glass rounded-xl p-4 border border-amber-400/20">
       <p class="text-[11px] text-gray-500 font-mono uppercase tracking-wider">Valor Total</p>
-      <p id="kpiValue" class="text-2xl font-bold text-green-400 mt-1">R$ 0</p>
+      <p id="kpiValue" class="text-2xl font-bold text-amber-300 mt-1">R$ 0</p>
     </div>
-    <div class="glass rounded-xl p-4 border border-yellow-500/20">
+    <div class="glass rounded-xl p-4 border border-amber-400/20">
       <p class="text-[11px] text-gray-500 font-mono uppercase tracking-wider">Com horário</p>
-      <p id="kpiTimed" class="text-2xl font-bold text-yellow-400 mt-1">0</p>
+      <p id="kpiTimed" class="text-2xl font-bold text-amber-300 mt-1">0</p>
     </div>
     <div class="glass rounded-xl p-4 border border-pink-500/20">
       <p class="text-[11px] text-gray-500 font-mono uppercase tracking-wider">Áreas</p>
@@ -233,7 +233,7 @@ body {
 
   <!-- Gráficos -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div class="glass rounded-2xl p-4 border border-cyan-500/15">
+    <div class="glass rounded-2xl p-4 border border-pink-400/15">
       <h3 class="text-sm font-semibold text-gray-300 mb-2">Distribuição por horário</h3>
       <div class="chart-box"><canvas id="chartByTime"></canvas></div>
     </div>
@@ -248,7 +248,7 @@ body {
     <div class="flex flex-wrap items-center gap-2">
       <span class="text-xs text-gray-500 font-mono uppercase">Abas:</span>
       <div id="tabsContainer" class="flex flex-wrap gap-1.5"></div>
-      <button type="button" id="btnAddSheet" class="px-2 py-1 text-[10px] rounded border border-dashed border-gray-600 text-gray-500 hover:border-cyan-400 hover:text-cyan-400">+ aba</button>
+      <button type="button" id="btnAddSheet" class="px-2 py-1 text-[10px] rounded border border-dashed border-gray-600 text-gray-500 hover:border-pink-300 hover:text-pink-300">+ aba</button>
     </div>
     <div id="dayFilterRow" class="flex flex-wrap items-center gap-2 hidden">
       <span class="text-xs text-gray-500 font-mono uppercase">Dias:</span>
@@ -256,7 +256,7 @@ body {
       <button type="button" id="btnAddDay" class="px-2 py-1 text-[10px] rounded border border-dashed border-yellow-600/50 text-yellow-500/70 hover:border-yellow-400 hover:text-yellow-300">+ dia</button>
     </div>
     <div class="flex flex-wrap items-center gap-2">
-      <input id="filterSearch" type="text" placeholder="Buscar..." class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-cyan-400 flex-1 min-w-[140px]"/>
+      <input id="filterSearch" type="text" placeholder="Buscar..." class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-pink-300 flex-1 min-w-[140px]"/>
       <select id="filterHasTime" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200">
         <option value="all">Todos horários</option>
         <option value="with">Com horário</option>
@@ -299,7 +299,7 @@ body {
 <div id="editModal" class="modal-overlay hidden">
   <div class="modal-box p-5">
     <div class="flex items-center justify-between mb-4">
-      <h3 id="modalTitle" class="text-lg font-semibold text-cyan-400">Editar paciente</h3>
+      <h3 id="modalTitle" class="text-lg font-semibold text-pink-300">Editar paciente</h3>
       <button type="button" id="btnCloseModal" class="text-gray-400 hover:text-white text-2xl leading-none px-2">&times;</button>
     </div>
     <form id="editForm" class="space-y-3">
@@ -366,7 +366,7 @@ body {
         <label for="fMsgEnviada" class="text-sm text-gray-300">Mensagem já enviada</label>
       </div>
       <div class="flex flex-col sm:flex-row gap-2 pt-3 border-t border-gray-700">
-        <button type="submit" class="flex-1 py-3 text-base rounded-xl bg-cyan-500/25 border border-cyan-500/50 text-cyan-200 font-semibold hover:bg-cyan-500/35">Salvar</button>
+        <button type="submit" class="flex-1 py-3 text-base rounded-xl bg-pink-500/25 border border-pink-400/50 text-pink-100 font-semibold hover:bg-pink-500/35">Salvar</button>
         <button type="button" id="btnDeleteClient" class="py-3 px-4 text-base rounded-xl bg-red-500/15 border border-red-500/40 text-red-400 font-medium hidden">Excluir</button>
         <button type="button" id="btnCancelEdit" class="py-3 px-4 text-base rounded-xl border border-gray-600 text-gray-400">Cancelar</button>
       </div>
@@ -456,9 +456,9 @@ function updateStatusBadge(msg, type) {
   var el = document.getElementById("statusBadge");
   el.textContent = msg;
   var map = {
-    ok: "bg-green-500/15 border-green-500/40 text-green-400",
-    info: "bg-cyan-500/15 border-cyan-500/40 text-cyan-400",
-    warn: "bg-yellow-500/15 border-yellow-500/40 text-yellow-400",
+    ok: "bg-amber-500/15 border-amber-400/40 text-amber-300",
+    info: "bg-pink-500/15 border-pink-400/40 text-pink-300",
+    warn: "bg-amber-500/15 border-amber-400/40 text-amber-300",
     idle: "bg-gray-800 border-gray-600 text-gray-400"
   };
   el.className = "px-2.5 py-1 rounded-full text-xs font-mono " + (map[type] || map.idle);
@@ -911,8 +911,8 @@ function renderList() {
     var timeHtml = c.horario
       ? '<span class="time-badge time-clickable font-semibold text-sm px-2 py-0.5 rounded-md ' + (c.msgEnviada ? "time-sent" : "time-pending") + '">' + escapeHtml(c.horario) + "</span>"
       : '<span class="time-badge time-empty text-xs px-2 py-0.5 rounded-md">—</span>';
-    var dayHtml = c.dayLabel ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-yellow-500/15 border border-yellow-500/40 text-yellow-200">' + escapeHtml(c.dayLabel) + "</span>" : "";
-    var valorHtml = c.valor > 0 ? '<span class="text-green-400 font-mono text-sm font-medium">' + formatMoney(c.valor) + "</span>" : '<span class="text-gray-600 text-xs">—</span>';
+    var dayHtml = c.dayLabel ? '<span class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/15 border border-amber-400/40 text-amber-100">' + escapeHtml(c.dayLabel) + "</span>" : "";
+    var valorHtml = c.valor > 0 ? '<span class="text-amber-300 font-mono text-sm font-medium">' + formatMoney(c.valor) + "</span>" : '<span class="text-gray-600 text-xs">—</span>';
     var fotoHtml = c.fototipo ? '<span class="fototipo-pill">' + escapeHtml(c.fototipo) + "</span>" : "";
     var areaHtml = c.area ? '<span class="area-tag">' + escapeHtml(c.area) + "</span>" : "";
     var hasObs = c.obs && c.obs.length > 0;
@@ -931,7 +931,7 @@ function renderList() {
         "</div>" +
         '<div class="flex-shrink-0 text-right space-y-1">' + valorHtml +
           '<div class="flex gap-1 justify-end">' +
-            (hasObs ? '<button type="button" class="obs-toggle text-[10px] text-cyan-500/80">📝 OBS</button>' : "") +
+            (hasObs ? '<button type="button" class="obs-toggle text-[10px] text-pink-400/80">📝 OBS</button>' : "") +
             '<button type="button" class="edit-btn text-[10px] text-pink-400/90 font-medium">✏️ Editar</button>' +
           "</div>" +
         "</div>" +
@@ -993,7 +993,7 @@ function refreshStats() {
     type: "bar",
     data: {
       labels: hourLabels.length ? hourLabels : ["—"],
-      datasets: [{ data: hourLabels.length ? hourLabels.map(function (k) { return hourMap[k]; }) : [0], backgroundColor: "#00f5ff66", borderColor: "#00f5ff", borderWidth: 1, borderRadius: 5 }]
+      datasets: [{ data: hourLabels.length ? hourLabels.map(function (k) { return hourMap[k]; }) : [0], backgroundColor: "#f9a8d466", borderColor: "#f9a8d4", borderWidth: 1, borderRadius: 5 }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
@@ -1018,8 +1018,8 @@ function refreshStats() {
       labels: sortedAreas.length ? sortedAreas.map(function (x) { return x[0]; }) : ["—"],
       datasets: [{
         data: sortedAreas.length ? sortedAreas.map(function (x) { return x[1]; }) : [1],
-        backgroundColor: ["#00f5ffcc", "#ff00aacc", "#a855f7cc", "#00ff9dcc", "#3b82f6cc", "#eab308cc", "#f97316cc", "#ec4899cc"],
-        borderColor: "#1a1a2e", borderWidth: 3
+        backgroundColor: ["#f9a8d4cc", "#ec4899cc", "#e879f9cc", "#fbbf24cc", "#f472b6cc", "#eab308cc", "#f97316cc", "#ec4899cc"],
+        borderColor: "#3d1f32", borderWidth: 3
       }]
     },
     options: {
@@ -1193,7 +1193,7 @@ function processWorkbook(buffer, fileName) {
   Object.keys(workbookData).forEach(function (k) { totalClients += workbookData[k].clients.length; });
   document.getElementById("fileInfo").classList.remove("hidden");
   document.getElementById("fileInfo").innerHTML =
-    '<span class="text-green-400">✓</span> <span class="text-cyan-400">' + escapeHtml(fileName) + "</span> • " +
+    '<span class="text-amber-300">✓</span> <span class="text-pink-300">' + escapeHtml(fileName) + "</span> • " +
     sheetNames.length + " abas • " + totalClients + " clientes";
   enableEditButtons();
   renderTabs();
