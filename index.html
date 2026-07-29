@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NEXUS · Larissa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            neon: { cyan: "#f9a8d4", pink: "#ec4899", purple: "#e879f9", green: "#fbbf24" },
+            dark: { 900: "#1a0a14", 800: "#241018", 700: "#2d1524", 600: "#3d1f32" }
+          },
+          fontFamily: {
+            sans: ["Inter", "system-ui", "sans-serif"],
+            mono: ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+    * { box-sizing: border-box; }
+    body {
+      background: #1a0a14;
+      min-height: 100vh;
+      font-family: Inter, system-ui, sans-serif;
+      color: #e2e8f0;
+      overflow: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 50% at 20% -10%, rgba(249, 168, 212, 0.05), transparent),
+        radial-gradient(ellipse 50% 40% at 100% 100%, rgba(168, 85, 247, 0.04), transparent);
+      pointer-events: none;
+      z-index: 0;
+      transform: translateZ(0);
+    }
+    .glass {
+      background: rgba(36, 16, 28, 0.94);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(249, 168, 212, 0.12);
+    }
+    .nav-item {
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover {
+      background: rgba(249, 168, 212, 0.06);
+      border-left-color: rgba(249, 168, 212, 0.35);
+    }
+    .nav-item.active {
+      background: rgba(249, 168, 212, 0.12);
+      border-left-color: #fbbf24;
+      color: #f9a8d4;
+    }
+    .nav-item.active .icon-box {
+      background: linear-gradient(135deg, rgba(249, 168, 212, 0.25), rgba(168, 85, 247, 0.2));
+      border-color: rgba(249, 168, 212, 0.4);
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent;
+      position: absolute;
+      inset: 0;
+    }
+    iframe.hidden-frame { display: none; }
+    .sidebar { width: 260px; min-width: 260px; }
+    @media (max-width: 768px) {
+      .sidebar { width: 72px; min-width: 72px; }
+      .sidebar .label, .sidebar .subtitle, .sidebar .footer-text { display: none; }
+      .sidebar .logo-text { display: none; }
+    }
+    .pulse-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #fbbf24;
+      box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.35; }
+    }
+  </style>
+</head>
+<body class="flex h-screen relative z-10">
+
+  <aside class="sidebar glass flex flex-col border-r border-pink-400/15 h-full">
+    <div class="px-5 py-5 border-b border-pink-400/10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-amber-300 flex items-center justify-center shadow-lg shadow-pink-400/20 flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <h1 class="text-lg font-bold tracking-tight">
+            <span class="text-pink-300">NEXUS</span> <span class="text-amber-300">Larissa</span>
+          </h1>
+          <p class="text-[10px] text-amber-200/70 font-mono tracking-widest uppercase">Estética · Clínica</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 py-4 space-y-1 px-2">
+      <p class="px-3 mb-2 text-[10px] font-mono uppercase tracking-widest text-gray-600 label">Módulos</p>
+
+      <button onclick="loadModule('planner')" id="nav-planner"
+              class="nav-item active w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left text-sm text-gray-300">
+        <div class="icon-box w-9 h-9 rounded-lg bg-pink-500/10 border border-pink-400/20 flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-pink-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </div>
+        <div class="label">
+          <div class="font-medium">Planner Semanal</div>
+          <div class="text-[11px] text-gray-500 subtitle">Kanban • Excel DB</div>
+        </div>
+      </button>
+
+      <button onclick="loadModule('extrato')" id="nav-extrato"
+              class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left text-sm text-gray-300">
+        <div class="icon-box w-9 h-9 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-pink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+        </div>
+        <div class="label">
+          <div class="font-medium">Extrato Bancário</div>
+          <div class="text-[11px] text-gray-500 subtitle">Finance • Fluxo</div>
+        </div>
+      </button>
+
+      <button onclick="loadModule('notas')" id="nav-notas"
+              class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left text-sm text-gray-300">
+        <div class="icon-box w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-400/20 flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+        </div>
+        <div class="label">
+          <div class="font-medium">Notas</div>
+          <div class="text-[11px] text-gray-500 subtitle">Anotações</div>
+        </div>
+      </button>
+
+      <button onclick="loadModule('agenda')" id="nav-agenda"
+              class="nav-item w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left text-sm text-gray-300">
+        <div class="icon-box w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="label">
+          <div class="font-medium">Agenda</div>
+          <div class="text-[11px] text-gray-500 subtitle">Planejamento</div>
+        </div>
+      </button>
+    </nav>
+
+    <div class="px-4 py-4 border-t border-pink-400/10">
+      <div class="flex items-center gap-2 text-xs text-gray-500">
+        <span class="pulse-dot"></span>
+        <span class="footer-text font-mono">Sistema online</span>
+      </div>
+      <p class="footer-text text-[10px] text-gray-600 mt-1.5 font-mono">By Ryan • Estático • Offline-ready</p>
+    </div>
+  </aside>
+
+  <main class="flex-1 h-full relative">
+    <iframe id="frame-planner" src="planner.html" title="Planner"></iframe>
+    <iframe id="frame-extrato" class="hidden-frame" title="Extrato"></iframe>
+    <iframe id="frame-notas"   class="hidden-frame" title="Notas"></iframe>
+    <iframe id="frame-agenda"  class="hidden-frame" title="Agenda"></iframe>
+  </main>
+
+  <script>
+    // Arquivos na MESMA pasta que o index.html (deploy estático)
+    const MODULE_FILES = {
+      planner: "planner.html",
+      extrato: "extrato.html",
+      notas: "notes.html",
+      agenda: "agenda.html"
+    };
+    const MODULES = Object.keys(MODULE_FILES);
+    const loaded = { planner: true };
+
+    function loadModule(name) {
+      if (!MODULE_FILES[name]) return;
+
+      if (!loaded[name]) {
+        const frame = document.getElementById("frame-" + name);
+        frame.src = MODULE_FILES[name];
+        loaded[name] = true;
+      }
+
+      MODULES.forEach(id => {
+        const frame = document.getElementById("frame-" + id);
+        if (frame) {
+          if (id === name) frame.classList.remove("hidden-frame");
+          else frame.classList.add("hidden-frame");
+        }
+        const nav = document.getElementById("nav-" + id);
+        if (nav) {
+          if (id === name) nav.classList.add("active");
+          else nav.classList.remove("active");
+        }
+      });
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (!e.altKey) return;
+      if (e.key === "1") loadModule("planner");
+      if (e.key === "2") loadModule("extrato");
+      if (e.key === "3") loadModule("notas");
+      if (e.key === "4") loadModule("agenda");
+    });
+  </script>
+</body>
+</html>

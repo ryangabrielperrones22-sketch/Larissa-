@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NEXUS PLANNER | Dashboard Futurista</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        neon: { cyan: "#f9a8d4", pink: "#ec4899", purple: "#e879f9", green: "#fbbf24", blue: "#f472b6" },
+        dark: { 900: "#1a0a14", 800: "#2a1220", 700: "#3d1f32", 600: "#4a2540" }
+      }
+    }
+  }
+}
+</script>
+<style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+* { box-sizing: border-box; }
+body {
+  background: linear-gradient(145deg, #1a0a14 0%, #2a1220 40%, #3d1f32 100%);
+  min-height: 100vh;
+  font-family: Inter, system-ui, sans-serif;
+}
+.glass {
+  background: rgba(26, 26, 46, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(249, 168, 212, 0.12);
+}
+.glass-hover:hover {
+  border-color: rgba(249, 168, 212, 0.35);
+  /* sem box-shadow animado: evita flicker no Chromium */
+}
+.neon-text { text-shadow: 0 0 8px rgba(249, 168, 212, 0.35); }
+.scrollbar-thin::-webkit-scrollbar { width: 5px; height: 5px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: #3d1f32; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #f9a8d444; border-radius: 3px; }
+.task-card { transition: opacity 0.15s ease, border-color 0.15s ease; }
+.task-card.completed { opacity: 0.5; }
+.task-card.completed .task-title { text-decoration: line-through; }
+.kanban-col { min-height: 320px; }
+.chart-box { position: relative; height: 220px; }
+input[type=file]::file-selector-button {
+  background: linear-gradient(90deg, #f9a8d418, #e879f918);
+  border: 1px solid #f9a8d455;
+  color: #f9a8d4;
+  padding: 0.35rem 0.9rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  margin-right: 0.6rem;
+  font-size: 0.75rem;
+}
+.priority-alta { border-left: 3px solid #ef4444; }
+.priority-media { border-left: 3px solid #eab308; }
+.priority-baixa { border-left: 3px solid #22c55e; }
+.cal-day {
+  min-height: 110px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.cal-day:hover { background: rgba(249, 168, 212, 0.06); }
+.cal-day.today {
+  background: rgba(249, 168, 212, 0.08);
+  border-color: rgba(249, 168, 212, 0.45) !important;
+}
+.cal-day.other-month { opacity: 0.35; }
+.cal-day.selected {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.5) !important;
+}
+.mode-btn.active {
+  background: rgba(249, 168, 212, 0.2);
+  border-color: rgba(249, 168, 212, 0.6);
+  color: #f9a8d4;
+}
+.task-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  display: inline-block;
+}
+</style>
+</head>
+<body class="text-gray-100 antialiased">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-50 glass border-b border-pink-400/20">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center shadow-lg shadow-pink-400/25">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold neon-text text-pink-300">NEXUS <span class="text-white">PLANNER</span></h1>
+        <p class="text-xs text-gray-400 font-mono">Planner Semanal + Mensal • Excel como banco de dados</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Toggle modo -->
+      <div class="flex rounded-lg border border-gray-600 overflow-hidden text-xs font-medium">
+        <button id="btnModeWeekly" class="mode-btn active px-3 py-1.5 border-r border-gray-600 hover:bg-pink-500/10 transition">Semanal</button>
+        <button id="btnModeMonthly" class="mode-btn px-3 py-1.5 hover:bg-pink-500/10 transition">Mensal</button>
+      </div>
+      <span id="statusBadge" class="px-2.5 py-1 rounded-full bg-gray-800 border border-gray-600 text-gray-400 text-xs font-mono">Novo planner</span>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+  <!-- CONTROLES DO PLANNER (Excel DB) -->
+  <section class="glass rounded-2xl p-5 border border-pink-400/20 glass-hover">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h2 class="text-base font-semibold text-pink-300 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+          </svg>
+          Banco de Dados (Excel)
+        </h2>
+        <p class="text-sm text-gray-400 mt-1 max-w-xl">
+          O arquivo Excel é a base de dados. Formato recomendado:
+          <span class="text-pink-300/80 font-mono text-xs">Data | Dia | Título | Prioridade | Concluído | Notas | ID</span>
+          (compatível com formatos antigos)
+        </p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" id="btnLoadExcel" class="px-3 py-2 text-xs rounded-lg bg-pink-500/15 border border-pink-400/40 text-pink-300 hover:bg-pink-500/25 transition font-medium flex items-center gap-1.5">
+          📂 Carregar Excel
+        </button>
+        <input type="file" id="excelInput" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden"/>
+        <button id="btnExportExcel" class="px-3 py-2 text-xs rounded-lg bg-amber-500/15 border border-amber-400/40 text-amber-300 hover:bg-amber-500/25 transition font-medium">
+          💾 Exportar Excel
+        </button>
+        <button id="btnNewPlanner" class="px-3 py-2 text-xs rounded-lg border border-gray-600 text-gray-400 hover:border-red-400 hover:text-red-400 transition">
+          Novo Planner
+        </button>
+      </div>
+    </div>
+    <div id="fileInfo" class="mt-3 text-sm font-mono text-gray-500 hidden"></div>
+  </section>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="kpiRow">
+    <div class="glass rounded-xl p-4 border border-pink-400/20">
+      <p class="text-[11px] text-gray-500 font-mono uppercase tracking-wider">Total Tarefas</p>
+      <p id="kpiTotal" class="text-2xl font-bold text-pink-300 mt-1">0</p>
+    </div>
+    <div class="glass rounded-xl p-4 border border-amber-400/20">
+      <p class="text-[11px] text-gray-500 font-mono uppercase tracking-wider">Concluídas</p>
+      <p id="kpiDone" class="text-2xl font-bold text-amber-300 mt-1">0</p>
+    </div>
+    <div class="glass rounded-xl p-4 border border-amber-400/20">
+      <p class="text-[11px] text-gray-500 font-mono uppercase tracking-wider">Pendentes</p>
+      <p id="kpiPending" class="text-2xl font-bold text-amber-300 mt-1">0</p>
+    </div>
+    <div class="glass rounded-xl p-4 border border-pink-500/20">
+      <p class="text-[11px] text-gray-500 font-mono uppercase tracking-wider">Progresso</p>
+      <p id="kpiProgress" class="text-2xl font-bold text-pink-400 mt-1">0%</p>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="glass rounded-2xl p-4 border border-pink-400/15 glass-hover">
+      <h3 class="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-pink-400"></span>
+        <span id="chartByDayTitle">Tarefas por Dia</span>
+      </h3>
+      <div class="chart-box"><canvas id="chartByDay"></canvas></div>
+    </div>
+    <div class="glass rounded-2xl p-4 border border-pink-500/15 glass-hover">
+      <h3 class="text-sm font-semibold text-gray-300 mb-2 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-pink-400"></span> Status Geral
+      </h3>
+      <div class="chart-box"><canvas id="chartStatus"></canvas></div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <section class="glass rounded-xl p-3 border border-gray-700 flex flex-wrap items-center gap-3">
+    <span class="text-xs text-gray-500 font-mono uppercase">Filtros:</span>
+    <select id="filterPriority" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-pink-300">
+      <option value="all">Todas prioridades</option>
+      <option value="alta">Alta</option>
+      <option value="media">Média</option>
+      <option value="baixa">Baixa</option>
+    </select>
+    <select id="filterStatus" class="bg-gray-800 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-pink-300">
+      <option value="all">Todos status</option>
+      <option value="pending">Pendentes</option>
+      <option value="done">Concluídas</option>
+    </select>
+    <button id="btnResetFilters" class="text-xs px-3 py-1.5 rounded-lg border border-gray-600 text-gray-400 hover:border-pink-300 hover:text-pink-300 transition">Resetar</button>
+  </section>
+
+  <!-- ========== VIEW SEMANAL ========== -->
+  <section id="viewWeekly" class="glass rounded-2xl p-5 border border-pink-500/20">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <div>
+        <h2 class="text-lg font-semibold text-pink-400 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          Planner Semanal
+        </h2>
+        <p class="text-sm text-gray-400 mt-0.5">Estilo Trello • Clique no check para concluir</p>
+      </div>
+      <button id="btnAddTaskWeekly" class="px-4 py-2 text-sm rounded-lg bg-pink-500/20 border border-pink-500/50 text-pink-400 hover:bg-pink-500/30 transition font-medium">
+        + Nova Tarefa
+      </button>
+    </div>
+    <div id="kanbanBoard" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3 overflow-x-auto scrollbar-thin pb-2">
+      <!-- preenchido por JS -->
+    </div>
+  </section>
+
+  <!-- ========== VIEW MENSAL ========== -->
+  <section id="viewMonthly" class="glass rounded-2xl p-5 border border-purple-500/20 hidden">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+      <div>
+        <h2 class="text-lg font-semibold text-purple-400 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          Planner Mensal
+        </h2>
+        <p class="text-sm text-gray-400 mt-0.5">Calendário • Clique em um dia para ver/adicionar tarefas</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnPrevMonth" class="w-9 h-9 rounded-lg border border-gray-600 text-gray-400 hover:border-purple-400 hover:text-purple-400 transition flex items-center justify-center">‹</button>
+        <span id="monthLabel" class="text-sm font-semibold text-purple-300 min-w-[140px] text-center font-mono"></span>
+        <button id="btnNextMonth" class="w-9 h-9 rounded-lg border border-gray-600 text-gray-400 hover:border-purple-400 hover:text-purple-400 transition flex items-center justify-center">›</button>
+        <button id="btnToday" class="ml-1 px-3 py-1.5 text-xs rounded-lg border border-gray-600 text-gray-400 hover:border-pink-300 hover:text-pink-300 transition">Hoje</button>
+        <button id="btnAddTaskMonthly" class="ml-2 px-4 py-2 text-sm rounded-lg bg-purple-500/20 border border-purple-500/50 text-purple-400 hover:bg-purple-500/30 transition font-medium">
+          + Nova Tarefa
+        </button>
+      </div>
+    </div>
+
+    <!-- Cabeçalho dos dias -->
+    <div class="grid grid-cols-7 gap-1 mb-1">
+      <div class="text-center text-[11px] font-mono text-gray-500 py-1">DOM</div>
+      <div class="text-center text-[11px] font-mono text-gray-500 py-1">SEG</div>
+      <div class="text-center text-[11px] font-mono text-gray-500 py-1">TER</div>
+      <div class="text-center text-[11px] font-mono text-gray-500 py-1">QUA</div>
+      <div class="text-center text-[11px] font-mono text-gray-500 py-1">QUI</div>
+      <div class="text-center text-[11px] font-mono text-gray-500 py-1">SEX</div>
+      <div class="text-center text-[11px] font-mono text-gray-500 py-1">SÁB</div>
+    </div>
+    <div id="calendarGrid" class="grid grid-cols-7 gap-1">
+      <!-- preenchido por JS -->
+    </div>
+
+    <!-- Painel do dia selecionado -->
+    <div id="dayPanel" class="mt-5 glass rounded-xl p-4 border border-purple-500/25 hidden">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="dayPanelTitle" class="text-sm font-semibold text-purple-300"></h3>
+        <button id="btnCloseDayPanel" class="text-gray-500 hover:text-gray-300 text-sm">✕</button>
+      </div>
+      <div id="dayPanelTasks" class="space-y-2 max-h-64 overflow-y-auto scrollbar-thin">
+        <!-- tarefas do dia -->
+      </div>
+      <p id="dayPanelEmpty" class="text-xs text-gray-600 text-center py-4 hidden">Nenhuma tarefa neste dia</p>
+    </div>
+  </section>
+
+  <footer class="text-center text-xs text-gray-600 py-3 font-mono">
+    NEXUS PLANNER • Single-file • Excel = Database • Semanal + Mensal • Tailwind + Chart.js + SheetJS
+  </footer>
+</main>
+
+<!-- MODAL NOVA TAREFA -->
+<div id="taskModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/70 backdrop-blur-sm">
+  <div class="glass rounded-2xl p-6 w-full max-w-md mx-4 border border-pink-500/30 shadow-lg shadow-pink-500/10">
+    <h3 id="modalTitle" class="text-lg font-semibold text-pink-400 mb-4">Nova Tarefa</h3>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs text-gray-400">Título</label>
+        <input id="taskTitle" type="text" class="w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-400" placeholder="Ex: Revisar relatório"/>
+      </div>
+      <!-- Campo dia da semana (modo semanal) -->
+      <div id="fieldDayOfWeek">
+        <label class="text-xs text-gray-400">Dia da semana</label>
+        <select id="taskDay" class="w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-400">
+          <option value="seg">Segunda</option>
+          <option value="ter">Terça</option>
+          <option value="qua">Quarta</option>
+          <option value="qui">Quinta</option>
+          <option value="sex">Sexta</option>
+          <option value="sab">Sábado</option>
+          <option value="dom">Domingo</option>
+        </select>
+      </div>
+      <!-- Campo data (modo mensal) -->
+      <div id="fieldDate" class="hidden">
+        <label class="text-xs text-gray-400">Data</label>
+        <input id="taskDate" type="date" class="w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400 text-gray-200"/>
+      </div>
+      <div>
+        <label class="text-xs text-gray-400">Prioridade</label>
+        <select id="taskPriority" class="w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-400">
+          <option value="baixa">Baixa</option>
+          <option value="media" selected>Média</option>
+          <option value="alta">Alta</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-400">Notas</label>
+        <textarea id="taskNotes" rows="3" class="w-full mt-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-pink-400 resize-y placeholder-gray-600" placeholder="Observações, links, detalhes..."></textarea>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-5">
+      <button id="btnCancelTask" class="px-4 py-2 text-sm rounded-lg border border-gray-600 text-gray-400 hover:bg-gray-800">Cancelar</button>
+      <button id="btnConfirmTask" class="px-4 py-2 text-sm rounded-lg bg-pink-500/30 border border-pink-400 text-pink-400 hover:bg-pink-500/40">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== STATE =====================
+const DAYS = [
+  { id: "seg", label: "Segunda", short: "SEG" },
+  { id: "ter", label: "Terça", short: "TER" },
+  { id: "qua", label: "Quarta", short: "QUA" },
+  { id: "qui", label: "Quinta", short: "QUI" },
+  { id: "sex", label: "Sexta", short: "SEX" },
+  { id: "sab", label: "Sábado", short: "SÁB" },
+  { id: "dom", label: "Domingo", short: "DOM" }
+];
+
+const MONTH_NAMES = [
+  "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+  "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+];
+
+// tasks: array of { id, title, priority, done, day (seg..dom), date (YYYY-MM-DD | null) }
+let tasks = [];
+let filterPriority = "all";
+let filterStatus = "all";
+let charts = { byDay: null, status: null };
+let currentFileName = null;
+let viewMode = "weekly"; // "weekly" | "monthly"
+let currentYear, currentMonth; // 0-indexed month
+let selectedDate = null; // YYYY-MM-DD
+let fileHandle = null;
+let autoSaveTimer = null;
+const HAS_FS_API = typeof window.showOpenFilePicker === "function";
+
+const MODULE_ID = "planner";
+const IDB_NAME = "nexus_memory";
+const IDB_STORE = "files";
+function idbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbSave(moduleId, fileName, buffer) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readwrite");
+    tx.objectStore(IDB_STORE).put({ fileName, buffer, savedAt: Date.now() }, moduleId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function idbLoad(moduleId) {
+  const db = await idbOpen();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, "readonly");
+    const req = tx.objectStore(IDB_STORE).get(moduleId);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function persistToServer(buffer, fileName) {
+  try { await idbSave(MODULE_ID, fileName || (MODULE_ID + ".xlsx"), buffer); }
+  catch (err) { console.warn("[NEXUS] IDB save fail", err); }
+  try {
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const fd = new FormData();
+    fd.append("file", blob, fileName || (MODULE_ID + ".xlsx"));
+    const res = await fetch("/api/save/" + MODULE_ID, { method: "POST", body: fd });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (data.ok) console.log("[NEXUS] server save OK", fileName);
+  } catch (err) { console.warn("[NEXUS] server save fail", err); }
+}
+async function tryRestoreFromServer() {
+  try {
+    const cached = await idbLoad(MODULE_ID);
+    if (cached && cached.buffer) {
+      console.log("[NEXUS] restore IDB", cached.fileName);
+      parseTasksFromArrayBuffer(cached.buffer, cached.fileName || "restaurado.xlsx"); if (typeof updateStatusBadge==="function") updateStatusBadge("Restaurado (memória local)","ok");
+      return true;
+    }
+  } catch (err) { console.warn("[NEXUS] IDB restore fail", err); }
+  try {
+    const metaRes = await fetch("/api/meta/" + MODULE_ID);
+    if (!metaRes.ok) return false;
+    const meta = await metaRes.json();
+    if (!meta.ok || !meta.saved) return false;
+    const res = await fetch("/api/load/" + MODULE_ID);
+    if (!res.ok) return false;
+    const buffer = await res.arrayBuffer();
+    const fileName = meta.filename || "restaurado.xlsx";
+    try { await idbSave(MODULE_ID, fileName, buffer); } catch (_) {}
+    console.log("[NEXUS] restore server", fileName);
+    parseTasksFromArrayBuffer(buffer, fileName); if (typeof updateStatusBadge==="function") updateStatusBadge("Restaurado (servidor)","ok");
+    return true;
+  } catch (err) { console.warn("[NEXUS] server restore fail", err); return false; }
+}
+
+
+function scheduleAutoSave() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(() => autoSaveToFile(), 600);
+}
+
+async function autoSaveToFile() {
+  try {
+    const rows = tasks.map(t => ({
+      Data: t.date || "",
+      Dia: t.day || (t.date ? dayOfWeekFromDate(t.date) : ""),
+      Título: t.title,
+      Prioridade: t.priority,
+      Concluído: t.done ? "sim" : "não",
+      Notas: t.notes || "",
+      ID: t.id
+    }));
+    if (rows.length === 0) {
+      rows.push({ Data: "", Dia: "seg", Título: "", Prioridade: "media", Concluído: "não", Notas: "", ID: "" });
+    }
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Planner");
+    ws["!cols"] = [{ wch: 12 }, { wch: 8 }, { wch: 40 }, { wch: 12 }, { wch: 12 }, { wch: 40 }, { wch: 16 }];
+    const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+    await persistToServer(out, currentFileName || "planner.xlsx");
+
+    if (fileHandle) {
+      const writable = await fileHandle.createWritable();
+      await writable.write(new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+      await writable.close();
+    }
+    updateStatusBadge("Salvo automaticamente", "ok");
+    const fi = document.getElementById("fileInfo");
+    if (fi && currentFileName) {
+      fi.classList.remove("hidden");
+      fi.innerHTML = '<span class="text-amber-300">✓</span> <span class="text-pink-300">' +
+        escapeHtml(currentFileName) + '</span> • ' + tasks.length +
+        ' tarefas • <span class="text-amber-300">auto-save ativo</span>';
+    }
+  } catch (err) {
+    console.error("Auto-save falhou:", err);
+    updateStatusBadge("Erro ao salvar (use Exportar)", "warn");
+  }
+}
+
+const today = new Date();
+currentYear = today.getFullYear();
+currentMonth = today.getMonth();
+
+// ===================== UTILS =====================
+function escapeHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function pad2(n) { return String(n).padStart(2, "0"); }
+
+function toISODate(d) {
+  return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+}
+
+function parseISODate(str) {
+  if (!str) return null;
+  const [y, m, d] = str.split("-").map(Number);
+  if (!y || !m || !d) return null;
+  return new Date(y, m - 1, d);
+}
+
+function dayOfWeekFromDate(iso) {
+  const d = parseISODate(iso);
+  if (!d) return null;
+  const map = ["dom","seg","ter","qua","qui","sex","sab"];
+  return map[d.getDay()];
+}
+
+function dayLabelFromISO(iso) {
+  const d = parseISODate(iso);
+  if (!d) return "";
+  return DAYS.find(x => x.id === dayOfWeekFromDate(iso))?.label || "";
+}
+
+function filteredTasks() {
+  return tasks.filter(t => {
+    if (filterPriority !== "all" && t.priority !== filterPriority) return false;
+    if (filterStatus === "done" && !t.done) return false;
+    if (filterStatus === "pending" && t.done) return false;
+    return true;
+  });
+}
+
+function tasksForDayOfWeek(dayId) {
+  return filteredTasks().filter(t => {
+    if (t.date) return dayOfWeekFromDate(t.date) === dayId;
+    return t.day === dayId;
+  });
+}
+
+function tasksForDate(iso) {
+  return filteredTasks().filter(t => t.date === iso);
+}
+
+function updateStatusBadge(msg, type) {
+  const el = document.getElementById("statusBadge");
+  el.textContent = msg;
+  const map = {
+    ok: "bg-amber-500/15 border-amber-400/40 text-amber-300",
+    info: "bg-pink-500/15 border-pink-400/40 text-pink-300",
+    warn: "bg-amber-500/15 border-amber-400/40 text-amber-300",
+    idle: "bg-gray-800 border-gray-600 text-gray-400"
+  };
+  el.className = "px-2.5 py-1 rounded-full text-xs font-mono " + (map[type] || map.idle);
+}
+
+// ===================== MODE SWITCH =====================
+function setMode(mode) {
+  viewMode = mode;
+  document.getElementById("btnModeWeekly").classList.toggle("active", mode === "weekly");
+  document.getElementById("btnModeMonthly").classList.toggle("active", mode === "monthly");
+  document.getElementById("viewWeekly").classList.toggle("hidden", mode !== "weekly");
+  document.getElementById("viewMonthly").classList.toggle("hidden", mode !== "monthly");
+  document.getElementById("chartByDayTitle").textContent = mode === "weekly" ? "Tarefas por Dia" : "Tarefas por Semana do Mês";
+  renderAll();
+}
+
+document.getElementById("btnModeWeekly").addEventListener("click", () => setMode("weekly"));
+document.getElementById("btnModeMonthly").addEventListener("click", () => setMode("monthly"));
+
+// ===================== KPI + CHARTS =====================
+function refreshStats() {
+  const list = filteredTasks();
+  const total = list.length;
+  const done = list.filter(t => t.done).length;
+  const pending = total - done;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+
+  document.getElementById("kpiTotal").textContent = total;
+  document.getElementById("kpiDone").textContent = done;
+  document.getElementById("kpiPending").textContent = pending;
+  document.getElementById("kpiProgress").textContent = pct + "%";
+
+  if (charts.byDay) charts.byDay.destroy();
+  if (charts.status) charts.status.destroy();
+
+  if (viewMode === "weekly") {
+    const dayLabels = DAYS.map(d => d.short);
+    const dayTotal = DAYS.map(d => tasksForDayOfWeek(d.id).length);
+    const dayDone = DAYS.map(d => tasksForDayOfWeek(d.id).filter(t => t.done).length);
+
+    charts.byDay = new Chart(document.getElementById("chartByDay"), {
+      type: "bar",
+      data: {
+        labels: dayLabels,
+        datasets: [
+          { label: "Total", data: dayTotal, backgroundColor: "#f9a8d466", borderColor: "#f9a8d4", borderWidth: 1, borderRadius: 5 },
+          { label: "Concluídas", data: dayDone, backgroundColor: "#fbbf2466", borderColor: "#fbbf24", borderWidth: 1, borderRadius: 5 }
+        ]
+      },
+      options: chartBarOptions()
+    });
+  } else {
+    // Monthly: group by week of month (1-5)
+    const weeks = [0,0,0,0,0];
+    const weeksDone = [0,0,0,0,0];
+    list.forEach(t => {
+      if (!t.date) return;
+      const d = parseISODate(t.date);
+      if (!d || d.getFullYear() !== currentYear || d.getMonth() !== currentMonth) return;
+      const weekIdx = Math.min(4, Math.floor((d.getDate() - 1) / 7));
+      weeks[weekIdx]++;
+      if (t.done) weeksDone[weekIdx]++;
+    });
+
+    charts.byDay = new Chart(document.getElementById("chartByDay"), {
+      type: "bar",
+      data: {
+        labels: ["Sem 1","Sem 2","Sem 3","Sem 4","Sem 5"],
+        datasets: [
+          { label: "Total", data: weeks, backgroundColor: "#e879f966", borderColor: "#e879f9", borderWidth: 1, borderRadius: 5 },
+          { label: "Concluídas", data: weeksDone, backgroundColor: "#fbbf2466", borderColor: "#fbbf24", borderWidth: 1, borderRadius: 5 }
+        ]
+      },
+      options: chartBarOptions()
+    });
+  }
+
+  charts.status = new Chart(document.getElementById("chartStatus"), {
+    type: "doughnut",
+    data: {
+      labels: ["Concluídas", "Pendentes"],
+      datasets: [{
+        data: [done, pending],
+        backgroundColor: ["#fbbf24cc", "#eab308cc"],
+        borderColor: "#3d1f32",
+        borderWidth: 3,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "62%",
+      plugins: {
+        legend: { position: "right", labels: { color: "#9ca3af", font: { size: 12 }, boxWidth: 12 } },
+        tooltip: {
+          backgroundColor: "rgba(10,10,18,0.95)",
+          titleColor: "#ec4899",
+          bodyColor: "#e5e7eb",
+          borderColor: "rgba(255,0,170,0.3)",
+          borderWidth: 1,
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(ctx) {
+              const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+              const pct = total ? ((ctx.raw / total) * 100).toFixed(1) : 0;
+              return ctx.label + ": " + ctx.raw + " (" + pct + "%)";
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function chartBarOptions() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: "#9ca3af", font: { size: 11 } } },
+      tooltip: {
+        backgroundColor: "rgba(10,10,18,0.95)",
+        titleColor: "#f9a8d4",
+        bodyColor: "#e5e7eb",
+        borderColor: "rgba(249,168,212,0.3)",
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8
+      }
+    },
+    scales: {
+      x: { ticks: { color: "#9ca3af", font: { size: 10 } }, grid: { color: "rgba(255,255,255,0.04)" } },
+      y: { ticks: { color: "#9ca3af", font: { size: 10 }, stepSize: 1 }, grid: { color: "rgba(255,255,255,0.04)" }, beginAtZero: true }
+    }
+  };
+}
+
+// ===================== RENDER KANBAN (WEEKLY) =====================
+function renderPlanner() {
+  const board = document.getElementById("kanbanBoard");
+  board.innerHTML = "";
+
+  DAYS.forEach(day => {
+    const dayTasks = tasksForDayOfWeek(day.id);
+    const col = document.createElement("div");
+    col.className = "kanban-col glass rounded-xl p-3 border border-gray-700/80 flex flex-col";
+
+    const header = document.createElement("div");
+    header.className = "flex items-center justify-between mb-3 pb-2 border-b border-gray-700";
+    header.innerHTML = `
+      <span class="font-semibold text-sm text-pink-300">${day.short}</span>
+      <span class="text-xs font-mono text-gray-500 bg-gray-800/80 px-1.5 py-0.5 rounded">${dayTasks.length}</span>
+    `;
+    col.appendChild(header);
+
+    const list = document.createElement("div");
+    list.className = "flex-1 space-y-2 overflow-y-auto scrollbar-thin max-h-72";
+
+    if (dayTasks.length === 0) {
+      list.innerHTML = `<p class="text-xs text-gray-600 text-center py-6">—</p>`;
+    }
+
+    dayTasks.forEach(task => {
+      const card = createTaskCard(task, true);
+      list.appendChild(card);
+    });
+
+    col.appendChild(list);
+    board.appendChild(col);
+  });
+}
+
+function createTaskCard(task, showDateHint) {
+  const card = document.createElement("div");
+  card.className = `task-card rounded-lg p-2.5 bg-gray-800/90 border border-gray-700 cursor-pointer priority-${task.priority} ${task.done ? "completed" : ""}`;
+
+  let extra = "";
+  if (showDateHint && task.date) {
+    const d = parseISODate(task.date);
+    if (d) extra = `<span class="text-[9px] text-gray-600 ml-1">${pad2(d.getDate())}/${pad2(d.getMonth()+1)}</span>`;
+  }
+
+  const hasNotes = task.notes && String(task.notes).trim().length > 0;
+  const notesPreview = hasNotes
+    ? `<p class="text-[10px] text-gray-500 mt-1 leading-snug line-clamp-2 whitespace-pre-wrap">${escapeHtml(String(task.notes).trim())}</p>`
+    : "";
+
+  card.innerHTML = `
+    <div class="flex items-start gap-2">
+      <div class="task-check w-4 h-4 mt-0.5 rounded border-2 flex-shrink-0 flex items-center justify-center ${task.done ? "bg-green-400 border-amber-300" : "border-gray-500"}">
+        ${task.done ? '<svg class="w-3 h-3 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ""}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="task-title text-sm text-gray-200 leading-snug break-words">${escapeHtml(task.title)}${extra}</p>
+        <div class="flex items-center gap-1.5 mt-1">
+          <p class="text-[10px] text-gray-500 uppercase tracking-wide">${task.priority}</p>
+          ${hasNotes ? '<span class="text-[10px] text-pink-400/80" title="Possui notas">📝</span>' : ""}
+        </div>
+        ${notesPreview}
+      </div>
+      <div class="flex flex-col gap-1 items-center">
+        <button class="edit-btn text-gray-600 hover:text-pink-300 text-xs leading-none" title="Editar / Notas">✎</button>
+        <button class="delete-btn text-gray-600 hover:text-red-400 text-xs leading-none" title="Excluir">✕</button>
+      </div>
+    </div>
+  `;
+
+  card.addEventListener("click", (e) => {
+    if (e.target.closest(".delete-btn") || e.target.closest(".edit-btn")) return;
+    task.done = !task.done;
+    renderAll();
+    scheduleAutoSave();
+  });
+
+  card.querySelector(".edit-btn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    openEditModal(task);
+  });
+
+  card.querySelector(".delete-btn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!confirm("Excluir esta tarefa?")) return;
+    tasks = tasks.filter(t => t.id !== task.id);
+    renderAll();
+    scheduleAutoSave();
+  });
+
+  return card;
+}
+
+// ===================== RENDER CALENDAR (MONTHLY) =====================
+function renderCalendar() {
+  document.getElementById("monthLabel").textContent = MONTH_NAMES[currentMonth] + " " + currentYear;
+
+  const grid = document.getElementById("calendarGrid");
+  grid.innerHTML = "";
+
+  const first = new Date(currentYear, currentMonth, 1);
+  const startDow = first.getDay(); // 0=Sun
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const prevDays = new Date(currentYear, currentMonth, 0).getDate();
+
+  const todayISO = toISODate(today);
+
+  const totalCells = Math.ceil((startDow + daysInMonth) / 7) * 7;
+
+  for (let i = 0; i < totalCells; i++) {
+    const cell = document.createElement("div");
+    let dayNum, iso, isOther = false;
+
+    if (i < startDow) {
+      dayNum = prevDays - startDow + 1 + i;
+      const m = currentMonth === 0 ? 11 : currentMonth - 1;
+      const y = currentMonth === 0 ? currentYear - 1 : currentYear;
+      iso = y + "-" + pad2(m + 1) + "-" + pad2(dayNum);
+      isOther = true;
+    } else if (i >= startDow + daysInMonth) {
+      dayNum = i - startDow - daysInMonth + 1;
+      const m = currentMonth === 11 ? 0 : currentMonth + 1;
+      const y = currentMonth === 11 ? currentYear + 1 : currentYear;
+      iso = y + "-" + pad2(m + 1) + "-" + pad2(dayNum);
+      isOther = true;
+    } else {
+      dayNum = i - startDow + 1;
+      iso = currentYear + "-" + pad2(currentMonth + 1) + "-" + pad2(dayNum);
+    }
+
+    const dayTasks = tasksForDate(iso);
+    const isToday = iso === todayISO;
+    const isSelected = iso === selectedDate;
+
+    cell.className = `cal-day rounded-lg border border-gray-700/60 p-1.5 cursor-pointer ${isOther ? "other-month" : ""} ${isToday ? "today" : ""} ${isSelected ? "selected" : ""}`;
+    cell.dataset.date = iso;
+
+    let dots = "";
+    const maxDots = 4;
+    dayTasks.slice(0, maxDots).forEach(t => {
+      const color = t.done ? "#fbbf24" : (t.priority === "alta" ? "#ef4444" : t.priority === "media" ? "#eab308" : "#22c55e");
+      dots += `<span class="task-dot" style="background:${color}"></span>`;
+    });
+    if (dayTasks.length > maxDots) dots += `<span class="text-[9px] text-gray-500">+${dayTasks.length - maxDots}</span>`;
+
+    cell.innerHTML = `
+      <div class="flex justify-between items-start">
+        <span class="text-xs font-mono ${isToday ? "text-pink-300 font-bold" : "text-gray-400"}">${dayNum}</span>
+        ${dayTasks.length ? `<span class="text-[9px] font-mono text-gray-500">${dayTasks.length}</span>` : ""}
+      </div>
+      <div class="flex flex-wrap gap-0.5 mt-1">${dots}</div>
+      <div class="mt-1 space-y-0.5">
+        ${dayTasks.slice(0, 2).map(t => `
+          <p class="text-[10px] leading-tight truncate ${t.done ? "text-gray-500 line-through" : "text-gray-300"}">${escapeHtml(t.title)}</p>
+        `).join("")}
+      </div>
+    `;
+
+    cell.addEventListener("click", () => {
+      selectedDate = iso;
+      renderCalendar();
+      openDayPanel(iso);
+    });
+
+    grid.appendChild(cell);
+  }
+}
+
+function openDayPanel(iso) {
+  const panel = document.getElementById("dayPanel");
+  panel.classList.remove("hidden");
+  const d = parseISODate(iso);
+  const label = d ? `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()} — ${dayLabelFromISO(iso)}` : iso;
+  document.getElementById("dayPanelTitle").textContent = label;
+
+  const list = document.getElementById("dayPanelTasks");
+  const empty = document.getElementById("dayPanelEmpty");
+  list.innerHTML = "";
+  const dayTasks = tasksForDate(iso);
+
+  if (dayTasks.length === 0) {
+    empty.classList.remove("hidden");
+  } else {
+    empty.classList.add("hidden");
+    dayTasks.forEach(task => {
+      list.appendChild(createTaskCard(task, false));
+    });
+  }
+}
+
+document.getElementById("btnCloseDayPanel").addEventListener("click", () => {
+  document.getElementById("dayPanel").classList.add("hidden");
+  selectedDate = null;
+  renderCalendar();
+});
+
+document.getElementById("btnPrevMonth").addEventListener("click", () => {
+  currentMonth--;
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  selectedDate = null;
+  document.getElementById("dayPanel").classList.add("hidden");
+  renderAll();
+});
+
+document.getElementById("btnNextMonth").addEventListener("click", () => {
+  currentMonth++;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  selectedDate = null;
+  document.getElementById("dayPanel").classList.add("hidden");
+  renderAll();
+});
+
+document.getElementById("btnToday").addEventListener("click", () => {
+  currentYear = today.getFullYear();
+  currentMonth = today.getMonth();
+  selectedDate = toISODate(today);
+  renderAll();
+  openDayPanel(selectedDate);
+});
+
+// ===================== RENDER ALL =====================
+function renderAll() {
+  if (viewMode === "weekly") {
+    renderPlanner();
+  } else {
+    renderCalendar();
+    if (selectedDate) openDayPanel(selectedDate);
+  }
+  refreshStats();
+}
+
+// ===================== EXCEL LOAD / EXPORT =====================
+function parseTasksFromArrayBuffer(buffer, fileName) {
+  const data = new Uint8Array(buffer);
+  const wb = XLSX.read(data, { type: "array" });
+  const sheetName = wb.SheetNames[0];
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "", raw: false });
+
+  tasks = [];
+
+  rows.forEach(row => {
+    const title = String(row.Título || row.Titulo || row.titulo || row.Title || row.title || row.Tarefa || row.tarefa || "").trim();
+    if (!title) return;
+
+    const priority = String(row.Prioridade || row.prioridade || row.Priority || row.priority || "media").toLowerCase().trim();
+    let done = row.Concluído || row.Concluido || row.concluido || row.Done || row.done || false;
+    if (typeof done === "string") done = ["true","1","sim","yes","x","✓"].includes(done.toLowerCase().trim());
+    const id = row.ID || row.Id || row.id || Date.now() + Math.random();
+
+    let dateStr = null;
+    const rawDate = row.Data || row.data || row.Date || row.date || "";
+    if (rawDate) {
+      if (typeof rawDate === "number") {
+        const excelEpoch = new Date(1899, 11, 30);
+        const d = new Date(excelEpoch.getTime() + rawDate * 86400000);
+        dateStr = toISODate(d);
+      } else {
+        const s = String(rawDate).trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(s)) dateStr = s.slice(0, 10);
+        else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) {
+          const [dd, mm, yyyy] = s.split("/");
+          dateStr = yyyy + "-" + pad2(+mm) + "-" + pad2(+dd);
+        }
+      }
+    }
+
+    const dayRaw = String(row.Dia || row.dia || row.Day || row.day || "").toLowerCase().trim();
+    let dayId = null;
+    if (["seg","segunda","mon","monday"].includes(dayRaw)) dayId = "seg";
+    else if (["ter","terça","terca","tue","tuesday"].includes(dayRaw)) dayId = "ter";
+    else if (["qua","quarta","wed","wednesday"].includes(dayRaw)) dayId = "qua";
+    else if (["qui","quinta","thu","thursday"].includes(dayRaw)) dayId = "qui";
+    else if (["sex","sexta","fri","friday"].includes(dayRaw)) dayId = "sex";
+    else if (["sab","sáb","sabado","sábado","sat","saturday"].includes(dayRaw)) dayId = "sab";
+    else if (["dom","domingo","sun","sunday"].includes(dayRaw)) dayId = "dom";
+
+    if (dateStr && !dayId) dayId = dayOfWeekFromDate(dateStr);
+    if (!dayId) dayId = "seg";
+
+    const notes = String(row.Notas || row.notas || row.Notes || row.notes || row.Nota || row.nota || "").trim();
+
+    tasks.push({
+      id: Number(id) || Date.now() + Math.random(),
+      title,
+      priority: ["alta","media","baixa"].includes(priority) ? priority : "media",
+      done: !!done,
+      day: dayId,
+      date: dateStr,
+      notes: notes || ""
+    });
+  });
+
+  currentFileName = fileName;
+  document.getElementById("fileInfo").classList.remove("hidden");
+  const autoMsg = fileHandle ? ' • <span class="text-amber-300">auto-save ativo</span>' : "";
+  document.getElementById("fileInfo").innerHTML = `<span class="text-amber-300">✓</span> Carregado: <span class="text-pink-300">${escapeHtml(fileName)}</span> • ${tasks.length} tarefas${autoMsg}`;
+  updateStatusBadge(fileHandle ? "Excel carregado (auto-save)" : "Excel carregado", "ok");
+  renderAll();
+  try { persistToServer(buffer, fileName); } catch (_) {}
+}
+
+async function loadExcelWithFS() {
+  try {
+    const [handle] = await window.showOpenFilePicker({
+      types: [{ description: "Excel", accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"], "application/vnd.ms-excel": [".xls"] } }],
+      multiple: false
+    });
+    fileHandle = handle;
+    const file = await handle.getFile();
+    const buffer = await file.arrayBuffer();
+    parseTasksFromArrayBuffer(buffer, file.name);
+  } catch (err) {
+    if (err.name === "AbortError") return;
+    console.error(err);
+    document.getElementById("excelInput").click();
+  }
+}
+
+document.getElementById("btnLoadExcel").addEventListener("click", () => {
+  if (HAS_FS_API) loadExcelWithFS();
+  else document.getElementById("excelInput").click();
+});
+
+document.getElementById("excelInput").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  fileHandle = null;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    try {
+      parseTasksFromArrayBuffer(evt.target.result, file.name);
+    } catch (err) {
+      console.error(err);
+      alert("Erro ao ler o Excel. Verifique as colunas (Data, Dia, Título, Prioridade, Concluído, Notas).");
+      updateStatusBadge("Erro ao carregar", "warn");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = "";
+});
+
+document.getElementById("btnExportExcel").addEventListener("click", function() {
+  const rows = tasks.map(t => ({
+    Data: t.date || "",
+    Dia: t.day || (t.date ? dayOfWeekFromDate(t.date) : ""),
+    Título: t.title,
+    Prioridade: t.priority,
+    Concluído: t.done ? "sim" : "não",
+    Notas: t.notes || "",
+    ID: t.id
+  }));
+
+  if (rows.length === 0) {
+    rows.push({ Data: "", Dia: "seg", Título: "", Prioridade: "media", Concluído: "não", Notas: "", ID: "" });
+  }
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Planner");
+  ws["!cols"] = [{ wch: 12 }, { wch: 8 }, { wch: 40 }, { wch: 12 }, { wch: 12 }, { wch: 40 }, { wch: 16 }];
+
+  const name = currentFileName
+    ? currentFileName.replace(/\.xlsx?$/i, "") + "_atualizado.xlsx"
+    : "planner_" + new Date().toISOString().slice(0,10) + ".xlsx";
+
+  XLSX.writeFile(wb, name);
+  updateStatusBadge("Excel exportado", "ok");
+});
+
+document.getElementById("btnNewPlanner").addEventListener("click", function() {
+  if (!confirm("Criar um planner em branco? As tarefas atuais serão perdidas (exporte antes se precisar).")) return;
+  tasks = [];
+  currentFileName = null;
+  fileHandle = null;
+  selectedDate = null;
+  document.getElementById("fileInfo").classList.add("hidden");
+  document.getElementById("dayPanel").classList.add("hidden");
+  updateStatusBadge("Novo planner", "idle");
+  renderAll();
+});
+
+// ===================== MODAL ADD / EDIT TASK =====================
+const modal = document.getElementById("taskModal");
+let editingTaskId = null; // null = create, otherwise edit existing
+
+function applyModalTheme() {
+  if (viewMode === "monthly") {
+    document.getElementById("fieldDayOfWeek").classList.add("hidden");
+    document.getElementById("fieldDate").classList.remove("hidden");
+    document.getElementById("modalTitle").classList.remove("text-pink-400");
+    document.getElementById("modalTitle").classList.add("text-purple-400");
+    document.getElementById("btnConfirmTask").className = "px-4 py-2 text-sm rounded-lg bg-purple-500/30 border border-purple-400 text-purple-400 hover:bg-purple-500/40";
+  } else {
+    document.getElementById("fieldDayOfWeek").classList.remove("hidden");
+    document.getElementById("fieldDate").classList.add("hidden");
+    document.getElementById("modalTitle").classList.remove("text-purple-400");
+    document.getElementById("modalTitle").classList.add("text-pink-400");
+    document.getElementById("btnConfirmTask").className = "px-4 py-2 text-sm rounded-lg bg-pink-500/30 border border-pink-400 text-pink-400 hover:bg-pink-500/40";
+  }
+}
+
+function openAddModal(prefillDate) {
+  editingTaskId = null;
+  document.getElementById("modalTitle").textContent = "Nova Tarefa";
+  document.getElementById("btnConfirmTask").textContent = "Adicionar";
+  document.getElementById("taskTitle").value = "";
+  document.getElementById("taskPriority").value = "media";
+  document.getElementById("taskNotes").value = "";
+  document.getElementById("taskDay").value = "seg";
+
+  applyModalTheme();
+
+  if (viewMode === "monthly") {
+    const dateInput = document.getElementById("taskDate");
+    if (prefillDate) dateInput.value = prefillDate;
+    else if (selectedDate) dateInput.value = selectedDate;
+    else dateInput.value = toISODate(today);
+  }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  setTimeout(() => document.getElementById("taskTitle").focus(), 50);
+}
+
+function openEditModal(task) {
+  editingTaskId = task.id;
+  document.getElementById("modalTitle").textContent = "Editar Tarefa";
+  document.getElementById("btnConfirmTask").textContent = "Salvar";
+  document.getElementById("taskTitle").value = task.title || "";
+  document.getElementById("taskPriority").value = task.priority || "media";
+  document.getElementById("taskNotes").value = task.notes || "";
+  document.getElementById("taskDay").value = task.day || "seg";
+
+  // Show fields based on whether task has a date (prefer date UI if it has date)
+  const hasDate = !!task.date;
+  if (hasDate || viewMode === "monthly") {
+    document.getElementById("fieldDayOfWeek").classList.add("hidden");
+    document.getElementById("fieldDate").classList.remove("hidden");
+    document.getElementById("taskDate").value = task.date || toISODate(today);
+    document.getElementById("modalTitle").classList.remove("text-pink-400");
+    document.getElementById("modalTitle").classList.add("text-purple-400");
+    document.getElementById("btnConfirmTask").className = "px-4 py-2 text-sm rounded-lg bg-purple-500/30 border border-purple-400 text-purple-400 hover:bg-purple-500/40";
+  } else {
+    document.getElementById("fieldDayOfWeek").classList.remove("hidden");
+    document.getElementById("fieldDate").classList.add("hidden");
+    document.getElementById("modalTitle").classList.remove("text-purple-400");
+    document.getElementById("modalTitle").classList.add("text-pink-400");
+    document.getElementById("btnConfirmTask").className = "px-4 py-2 text-sm rounded-lg bg-pink-500/30 border border-pink-400 text-pink-400 hover:bg-pink-500/40";
+  }
+
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+  setTimeout(() => document.getElementById("taskTitle").focus(), 50);
+}
+
+document.getElementById("btnAddTaskWeekly").addEventListener("click", () => openAddModal());
+document.getElementById("btnAddTaskMonthly").addEventListener("click", () => openAddModal(selectedDate));
+
+document.getElementById("btnCancelTask").addEventListener("click", () => {
+  editingTaskId = null;
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+});
+
+document.getElementById("btnConfirmTask").addEventListener("click", () => {
+  const title = document.getElementById("taskTitle").value.trim();
+  if (!title) return;
+  const priority = document.getElementById("taskPriority").value;
+  const notes = document.getElementById("taskNotes").value.trim();
+
+  let day = "seg";
+  let date = null;
+
+  const dateFieldVisible = !document.getElementById("fieldDate").classList.contains("hidden");
+  if (dateFieldVisible) {
+    date = document.getElementById("taskDate").value || null;
+    if (date) day = dayOfWeekFromDate(date) || "seg";
+  } else {
+    day = document.getElementById("taskDay").value;
+  }
+
+  if (editingTaskId != null) {
+    const t = tasks.find(x => x.id === editingTaskId);
+    if (t) {
+      t.title = title;
+      t.priority = priority;
+      t.notes = notes;
+      t.day = day;
+      t.date = date;
+    }
+    editingTaskId = null;
+  } else {
+    tasks.push({
+      id: Date.now() + Math.random(),
+      title,
+      priority,
+      done: false,
+      day,
+      date,
+      notes
+    });
+  }
+
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+  renderAll();
+  scheduleAutoSave();
+});
+
+document.getElementById("taskTitle").addEventListener("keydown", e => {
+  if (e.key === "Enter") document.getElementById("btnConfirmTask").click();
+});
+
+// ===================== FILTERS =====================
+document.getElementById("filterPriority").addEventListener("change", e => {
+  filterPriority = e.target.value;
+  renderAll();
+});
+document.getElementById("filterStatus").addEventListener("change", e => {
+  filterStatus = e.target.value;
+  renderAll();
+});
+document.getElementById("btnResetFilters").addEventListener("click", () => {
+  filterPriority = "all";
+  filterStatus = "all";
+  document.getElementById("filterPriority").value = "all";
+  document.getElementById("filterStatus").value = "all";
+  renderAll();
+});
+
+// ===================== INIT =====================
+renderAll();
+updateStatusBadge("Novo planner", "idle");
+
+(function bootRestore() {
+  const run = () => { try { tryRestoreFromServer(); } catch (e) { console.warn(e); } };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
+  else setTimeout(run, 80);
+})();
+</script>
+</body>
+</html>
